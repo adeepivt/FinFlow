@@ -3,6 +3,8 @@ from contextlib import asynccontextmanager
 
 from app.config import settings
 from app.database import create_tables
+from app.api.v1.users import router as users_router
+from app.api.v1.auth import router as auth_router
 
 
 @asynccontextmanager
@@ -24,9 +26,11 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+app.include_router(users_router, prefix="/api/v1", tags=["users"])
+app.include_router(auth_router, prefix="/api/v1", tags=["authentication"])
+
 @app.get("/")
 async def root():
-    """Home page - basic info about our API."""
     return {
         "message": "Welcome to FinFlow API! 💰",
         "version": "1.0.0",
@@ -36,7 +40,6 @@ async def root():
 
 @app.get("/health")
 async def health_check():
-    """Check if API is working."""
     return {
         "status": "healthy",
         "message": "FinFlow is running! 🎉"
