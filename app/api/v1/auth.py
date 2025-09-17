@@ -19,7 +19,7 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
     Login with email and password.
     Returns JWT access token.
     """
-    
+
     user = get_user_by_email(db, form_data.username)
     if not user or not verify_password(form_data.password, user.hashed_password):
         raise HTTPException(

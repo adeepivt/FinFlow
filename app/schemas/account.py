@@ -1,4 +1,4 @@
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, field_validator
 from datetime import datetime
 from decimal import Decimal
 from typing import Optional
@@ -14,7 +14,7 @@ class AccountBase(BaseModel):
 class AccountCreate(AccountBase):
     balance: Optional[Decimal] = Decimal('0.00')
     
-    @validator('account_type')
+    @field_validator('account_type')
     def validate_account_type(cls, v):
         """Ensure account type is valid."""
         allowed_types = ['checking', 'savings', 'credit_card', 'investment', 'cash']
@@ -22,7 +22,7 @@ class AccountCreate(AccountBase):
             raise ValueError(f'Account type must be one of: {", ".join(allowed_types)}')
         return v
     
-    @validator('balance')
+    @field_validator('balance')
     def validate_balance(cls, v):
         """Ensure balance is reasonable."""
         if v is not None and v < Decimal('-999999.99'):
@@ -53,7 +53,7 @@ class AccountUpdate(BaseModel):
     # institution: Optional[str] = None
     is_active: Optional[bool] = None
     
-    @validator('account_type')
+    @field_validator('account_type')
     def validate_account_type(cls, v):
         """Ensure account type is valid if provided."""
         if v is not None:

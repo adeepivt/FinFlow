@@ -5,6 +5,7 @@ from app.database import get_db
 from app.schemas.user import UserCreate, UserResponse
 from app.models.user import User
 from app.services.user_service import create_user, get_user_by_email
+from app.api.v1.auth import get_current_user
 
 router = APIRouter()
 
@@ -37,7 +38,7 @@ async def register_user(user_data: UserCreate, db: Session = Depends(get_db)):
 
 
 @router.get("/users/{user_id}", response_model=UserResponse)
-async def get_user(user_id: int, db: Session = Depends(get_db)):
+async def get_user(user_id: int, db: Session = Depends(get_db),current_user: User = Depends(get_current_user)):
     """
     Get user by ID.
     """

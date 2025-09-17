@@ -1,4 +1,4 @@
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, field_validator, Field
 from datetime import datetime
 from decimal import Decimal
 from typing import Optional
@@ -10,7 +10,7 @@ class TransactionBase(BaseModel):
     category: Optional[str] = None
     notes: Optional[str] = None
     reference: Optional[str] = None
-    transaction_date: datetime
+    transaction_date: datetime = Field(default_factory=datetime.now)
 
 
 class TransactionCreate(TransactionBase):
@@ -18,7 +18,7 @@ class TransactionCreate(TransactionBase):
     transaction_type: str
     transfer_account_id: Optional[int] = None
     
-    @validator('transaction_type')
+    @field_validator('transaction_type')
     def validate_transaction_type(cls, v):
         """Ensure transaction type is valid."""
         allowed_types = ['income', 'expense', 'transfer']
@@ -26,7 +26,7 @@ class TransactionCreate(TransactionBase):
             raise ValueError(f'Transaction type must be one of: {", ".join(allowed_types)}')
         return v
     
-    @validator('amount')
+    @field_validator('amount')
     def validate_amount(cls, v, values):
         """Validate amount based on transaction type."""
         transaction_type = values.get('transaction_type')
@@ -40,7 +40,7 @@ class TransactionCreate(TransactionBase):
             
         return v
     
-    @validator('transfer_account_id')
+    @field_validator('transfer_account_id')
     def validate_transfer_account(cls, v, values):
         """Transfer transactions must have transfer_account_id."""
         transaction_type = values.get('transaction_type')
@@ -78,7 +78,7 @@ class TransactionUpdate(BaseModel):
     reference: Optional[str] = None
     transaction_date: Optional[datetime] = None
     
-    @validator('amount')
+    @field_validator('amount')
     def validate_amount(cls, v):
         """Amount cannot be zero if provided."""
         if v is not None and v == 0:
