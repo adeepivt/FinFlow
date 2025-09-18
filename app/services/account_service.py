@@ -41,7 +41,7 @@ def update_account(db: Session, account_id: int, user_id: int, account_data: Acc
     if not account:
         return None
     
-    update_data = account_data.dict(exclude_unset=True)
+    update_data = account_data.model_dump(exclude_unset=True)
     for field, value in update_data.items():
         setattr(account, field, value)
     

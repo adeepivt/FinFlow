@@ -15,6 +15,7 @@ class AccountCreate(AccountBase):
     balance: Optional[Decimal] = Decimal('0.00')
     
     @field_validator('account_type')
+    @classmethod
     def validate_account_type(cls, v):
         """Ensure account type is valid."""
         allowed_types = ['checking', 'savings', 'credit_card', 'investment', 'cash']
@@ -23,6 +24,7 @@ class AccountCreate(AccountBase):
         return v
     
     @field_validator('balance')
+    @classmethod
     def validate_balance(cls, v):
         """Ensure balance is reasonable."""
         if v is not None and v < Decimal('-999999.99'):
@@ -54,6 +56,7 @@ class AccountUpdate(BaseModel):
     is_active: Optional[bool] = None
     
     @field_validator('account_type')
+    @classmethod
     def validate_account_type(cls, v):
         """Ensure account type is valid if provided."""
         if v is not None:

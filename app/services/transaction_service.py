@@ -157,7 +157,7 @@ def update_transaction(
         return None
     
     old_amount = transaction.amount
-    update_data = transaction_data.dict(exclude_unset=True)
+    update_data = transaction_data.model_dump(exclude_unset=True)
     for field, value in update_data.items():
         setattr(transaction, field, value)
     
