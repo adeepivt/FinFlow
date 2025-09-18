@@ -1,10 +1,11 @@
-from pydantic import BaseModel, field_validator, Field
+from pydantic import BaseModel, field_validator, Field, ValidationInfo
 from datetime import datetime
 from decimal import Decimal
 from typing import Optional
 
 
 class TransactionBase(BaseModel):
+    transaction_type: str
     amount: Decimal
     description: str
     category: Optional[str] = None
@@ -15,10 +16,10 @@ class TransactionBase(BaseModel):
 
 class TransactionCreate(TransactionBase):
     account_id: int
-    transaction_type: str
     transfer_account_id: Optional[int] = None
     
     @field_validator('transaction_type')
+    @classmethod
     def validate_transaction_type(cls, v):
         """Ensure transaction type is valid."""
         allowed_types = ['income', 'expense', 'transfer']
@@ -27,9 +28,10 @@ class TransactionCreate(TransactionBase):
         return v
     
     @field_validator('amount')
-    def validate_amount(cls, v, values):
+    @classmethod
+    def validate_amount(cls, v, info: ValidationInfo):
         """Validate amount based on transaction type."""
-        transaction_type = values.get('transaction_type')
+        transaction_type = info.data.get('transaction_type')
         
         if v == 0:
             raise ValueError('Amount cannot be zero')
@@ -41,14 +43,15 @@ class TransactionCreate(TransactionBase):
         return v
     
     @field_validator('transfer_account_id')
-    def validate_transfer_account(cls, v, values):
+    @classmethod
+    def validate_transfer_account(cls, v, info: ValidationInfo):
         """Transfer transactions must have transfer_account_id."""
-        transaction_type = values.get('transaction_type')
+        transaction_type = info.data.get('transaction_type')
         
         if transaction_type == 'transfer':
             if v is None:
                 raise ValueError('Transfer transactions must specify transfer_account_id')
-            if v == values.get('account_id'):
+            if v == info.data.get('account_id'):
                 raise ValueError('Cannot transfer to the same account')
         
         elif transaction_type in ['income', 'expense'] and v is not None:

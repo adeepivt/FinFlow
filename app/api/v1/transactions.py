@@ -113,7 +113,7 @@ async def delete_user_transaction(
     return None
 
 
-@router.get("/transactions/summary", response_model=TransactionSummary)
+@router.get("/transactions/reports/summary", response_model=TransactionSummary)
 async def get_my_transaction_summary(
     account_id: Optional[int] = Query(None, description="Filter by specific account"),
     start_date: Optional[date] = Query(None, description="Start date for summary (YYYY-MM-DD)"),
