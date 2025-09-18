@@ -6,7 +6,7 @@ from datetime import datetime, date
 from app.models.transaction import Transaction
 from app.models.account import Account
 from app.schemas.transaction import TransactionCreate, TransactionUpdate, TransactionSummary
-
+from app.services.ai.categorization_service import categorization_service
 
 def create_transaction(db: Session, transaction_data: TransactionCreate, user_id: int) -> Transaction:
     """
@@ -22,6 +22,14 @@ def create_transaction(db: Session, transaction_data: TransactionCreate, user_id
     if not account:
         raise ValueError("Account not found or access denied")
     
+    if not transaction_data.category and transaction_data.transaction_type != "transfer":
+        ai_category = categorization_service.categorize_transaction(
+            description=transaction_data.description,
+            amount=float(transaction_data.amount)
+        )
+        transaction_data.category = ai_category
+        print(f"AI categorized '{transaction_data.description}' as '{ai_category}'")
+
     if transaction_data.transaction_type == 'transfer':
         return _create_transfer_transactions(db, transaction_data, user_id)
     else:
