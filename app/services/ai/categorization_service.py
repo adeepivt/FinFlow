@@ -116,7 +116,7 @@ class CategorizationService:
 
                 Transaction details:
                 - Description: "{description}"
-                - Amount: ${abs(amount):.2f} ({transaction_type})
+                - Amount: ₹{abs(amount):.2f} ({transaction_type})
                 {f"- Merchant: {merchant}" if merchant else ""}
 
                 Rules:

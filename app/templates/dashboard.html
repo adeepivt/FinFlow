@@ -1,0 +1,226 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - FinFlow{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Page header -->
+    <div class="md:flex md:items-center md:justify-between">
+        <div class="flex-1 min-w-0">
+            <h2 class="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl">
+                Financial Dashboard
+            </h2>
+            <p class="text-sm text-gray-500">
+                Overview of your financial health
+            </p>
+        </div>
+        <div class="mt-4 flex md:mt-0 md:ml-4">
+            <button 
+                hx-get="/api/v1/ai/insights" 
+                hx-target="#ai-insights"
+                hx-swap="innerHTML"
+                class="ml-3 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
+            >
+                🤖 Get AI Insights
+            </button>
+        </div>
+    </div>
+
+    <!-- Stats cards -->
+    <div class="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <!-- Total Balance -->
+        <div class="bg-white overflow-hidden shadow-lg rounded-lg">
+            <div class="p-5">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                            💰
+                        </div>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">Total Balance</dt>
+                            <dd class="text-lg font-medium text-gray-900">₹{{ "%.2f"|format(total_balance or 0) }}</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- This Month Income -->
+        <div class="bg-white overflow-hidden shadow-lg rounded-lg">
+            <div class="p-5">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                            📈
+                        </div>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">This Month Income</dt>
+                            <dd class="text-lg font-medium text-green-600">₹{{ "%.2f"|format(monthly_income or 0) }}</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- This Month Expenses -->
+        <div class="bg-white overflow-hidden shadow-lg rounded-lg">
+            <div class="p-5">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center">
+                            📉
+                        </div>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">This Month Expenses</dt>
+                            <dd class="text-lg font-medium text-red-600">₹{{ "%.2f"|format(monthly_expenses or 0) }}</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Net Worth -->
+        <div class="bg-white overflow-hidden shadow-lg rounded-lg">
+            <div class="p-5">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                            🎯
+                        </div>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">Net This Month</dt>
+                            <dd class="text-lg font-medium text-{{ 'green' if (monthly_income or 0) - (monthly_expenses or 0) > 0 else 'red' }}-600">
+                                ₹{{ "%.2f"|format((monthly_income or 0) - (monthly_expenses or 0)) }}
+                            </dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts and Recent Activity -->
+    <div class="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <!-- Spending by Category Chart -->
+        <div class="bg-white shadow-lg rounded-lg p-6">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Spending by Category</h3>
+            <canvas id="categoryChart" width="400" height="200"></canvas>
+        </div>
+
+        <!-- Recent Transactions -->
+        <div class="bg-white shadow-lg rounded-lg p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-medium text-gray-900">Recent Transactions</h3>
+                <a href="/transactions" class="text-sm text-indigo-600 hover:text-indigo-900">View all</a>
+            </div>
+            <div 
+                hx-get="/transactions/recent" 
+                hx-trigger="load"
+                hx-target="this"
+                hx-swap="innerHTML"
+                class="space-y-3"
+            >
+                <!-- HTMX will load recent transactions here -->
+                <div class="animate-pulse">
+                    <div class="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                    <div class="h-4 bg-gray-200 rounded w-1/2"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Insights Section -->
+    <div class="mt-8">
+        <div class="bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 shadow-lg rounded-lg p-6 text-white">
+            <h3 class="text-lg font-medium mb-4">🤖 AI Financial Insights</h3>
+            <div id="ai-insights">
+                <p class="text-purple-100">Click "Get AI Insights" to analyze your spending patterns and get personalized recommendations.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="mt-8 bg-white shadow-lg rounded-lg p-6">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">Quick Actions</h3>
+        <div class="grid grid-cols-2 gap-4 sm:grid-cols-4">
+            <button 
+                hx-get="/transactions/add"
+                hx-target="#modal-content"
+                hx-swap="innerHTML"
+                class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-center"
+            >
+                💵 Add Income
+            </button>
+            <button 
+                hx-get="/transactions/add-expense"
+                hx-target="#modal-content"
+                hx-swap="innerHTML"
+                class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-center"
+            >
+                💸 Add Expense
+            </button>
+            <button 
+                hx-get="/accounts/add"
+                hx-target="#modal-content"
+                hx-swap="innerHTML"
+                class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-center"
+            >
+                🏦 Add Account
+            </button>
+            <button 
+                hx-get="/transfer"
+                hx-target="#modal-content"
+                hx-swap="innerHTML"
+                class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-center"
+            >
+                🔄 Transfer
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for quick actions -->
+<div id="modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden" x-data="{ open: false }">
+    <div class="flex items-center justify-center min-h-screen px-4">
+        <div id="modal-content" class="bg-white rounded-lg max-w-md w-full">
+            <!-- HTMX will load forms here -->
+        </div>
+    </div>
+</div>
+
+<script>
+// Initialize spending chart
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('categoryChart').getContext('2d');
+    const categoryChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: {{ category_labels | safe }},
+            datasets: [{
+                data: {{ category_data | safe }},
+                backgroundColor: [
+                    '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0',
+                    '#9966FF', '#FF9F40', '#FF6384', '#C9CBCF'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

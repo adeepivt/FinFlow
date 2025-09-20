@@ -1,6 +1,9 @@
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
 
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+
 from app.config import settings
 from app.database import create_tables
 from app.api.v1.users import router as users_router
@@ -8,6 +11,7 @@ from app.api.v1.auth import router as auth_router
 from app.api.v1.accounts import router as accounts_router
 from app.api.v1.transactions import router as transactions_router
 from app.api.v1.ai import router as ai_router
+from app.web import router as web_router
 
 
 @asynccontextmanager
@@ -29,11 +33,14 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+app.mount("/static", StaticFiles(directory="app/static"), name="static")
+
 app.include_router(users_router, prefix="/api/v1", tags=["users"])
 app.include_router(auth_router, prefix="/api/v1", tags=["authentication"])
 app.include_router(accounts_router, prefix="/api/v1", tags=["accounts"])
 app.include_router(transactions_router, prefix="/api/v1", tags=["transactions"])
 app.include_router(ai_router, prefix="/api/v1", tags=["ai-features"])
+app.include_router(web_router, tags=["web"])
 
 
 @app.get("/")
