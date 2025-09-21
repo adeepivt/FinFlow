@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+
+{% block title %}AI Insights - FinFlow{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="md:flex md:items-center md:justify-between">
+        <div class="flex-1 min-w-0">
+            <h2 class="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl">🤖 AI Financial Insights</h2>
+            <p class="text-sm text-gray-500">Intelligent analysis of your spending patterns and financial habits</p>
+        </div>
+        <div class="mt-4 flex md:mt-0 md:ml-4">
+            <button hx-get="/insights" hx-target="body" hx-swap="outerHTML"
+                class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700">
+                🔄 Refresh Insights
+            </button>
+        </div>
+    </div>
+
+    <!-- Financial Summary Cards -->
+    <div class="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <div class="bg-gradient-to-r from-green-400 to-green-600 overflow-hidden shadow-lg rounded-lg">
+            <div class="p-5 text-white">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0"><span class="text-2xl">💰</span></div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-green-100 truncate">Total Income</dt>
+                            <dd class="text-lg font-medium">${{ "%.2f"|format(insights.summary.total_income or 0) }}</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-gradient-to-r from-red-400 to-red-600 overflow-hidden shadow-lg rounded-lg">
+            <div class="p-5 text-white">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0"><span class="text-2xl">💸</span></div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-red-100 truncate">Total Expenses</dt>
+                            <dd class="text-lg font-medium">${{ "%.2f"|format(insights.summary.total_expenses or 0) }}</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-gradient-to-r from-blue-400 to-blue-600 overflow-hidden shadow-lg rounded-lg">
+            <div class="p-5 text-white">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0"><span class="text-2xl">📊</span></div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-blue-100 truncate">Net Amount</dt>
+                            <dd class="text-lg font-medium">${{ "%.2f"|format((insights.summary.total_income or 0) - (insights.summary.total_expenses or 0)) }}</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-gradient-to-r from-purple-400 to-purple-600 overflow-hidden shadow-lg rounded-lg">
+            <div class="p-5 text-white">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0"><span class="text-2xl">📈</span></div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-purple-100 truncate">Transactions</dt>
+                            <dd class="text-lg font-medium">{{ insights.summary.transaction_count or 0 }}</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <!-- AI Insights -->
+        <div class="bg-white shadow-lg rounded-lg p-6">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">🧠 AI-Powered Insights</h3>
+            {% if insights.ai_insights and insights.ai_insights|length > 0 %}
+                <div class="space-y-4">
+                    {% for insight in insights.ai_insights %}
+                        <div class="bg-purple-50 border-l-4 border-purple-400 p-4">
+                            <div class="flex">
+                                <div class="flex-shrink-0"><span class="text-purple-400">🤖</span></div>
+                                <div class="ml-3">
+                                    <p class="text-sm text-purple-700">{{ insight }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-6">
+                    <span class="text-4xl mb-4 block">🤖</span>
+                    <p class="text-gray-500">No AI insights available. Add more transactions for better analysis.</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Spending Trends -->
+        <div class="bg-white shadow-lg rounded-lg p-6">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">📈 Spending Trends</h3>
+            {% if insights.trends %}
+                <div class="space-y-4">
+                    {% if insights.trends.monthly %}
+                        <div class="bg-blue-50 rounded-lg p-4">
+                            <h4 class="font-medium text-blue-900">Monthly Trend</h4>
+                            <p class="text-sm text-blue-700 mt-1">
+                                Your spending is {{ insights.trends.monthly.trend_direction }} 
+                                by {{ insights.trends.monthly.trend_percentage|abs }}% this month
+                            </p>
+                        </div>
+                    {% endif %}
+                    
+                    {% if insights.trends.weekly %}
+                        <div class="bg-green-50 rounded-lg p-4">
+                            <h4 class="font-medium text-green-900">Weekly Pattern</h4>
+                            <p class="text-sm text-green-700 mt-1">
+                                You typically spend more on {{ insights.trends.weekly.highest_spending_day }}s
+                            </p>
+                        </div>
+                    {% endif %}
+                </div>
+            {% else %}
+                <div class="text-center py-6">
+                    <span class="text-4xl mb-4 block">📈</span>
+                    <p class="text-gray-500">Not enough data for trend analysis yet.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Category Breakdown & Recommendations -->
+    <div class="mt-8 bg-white shadow-lg rounded-lg p-6">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">💡 Personalized Recommendations</h3>
+        {% if insights.recommendations and insights.recommendations|length > 0 %}
+            <div class="space-y-4">
+                {% for recommendation in insights.recommendations %}
+                    <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4">
+                        <div class="flex">
+                            <div class="flex-shrink-0"><span class="text-yellow-400">💡</span></div>
+                            <div class="ml-3">
+                                <p class="text-sm text-yellow-700">{{ recommendation }}</p>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center py-6">
+                <span class="text-4xl mb-4 block">💡</span>
+                <p class="text-gray-500">No recommendations available yet.</p>
+                <p class="text-sm text-gray-400 mt-2">Keep tracking your expenses to get personalized advice.</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Privacy Notice -->
+    <div class="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <div class="flex">
+            <div class="flex-shrink-0">
+                <svg class="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                </svg>
+            </div>
+            <div class="ml-3">
+                <h3 class="text-sm font-medium text-blue-800">Privacy & AI Processing</h3>
+                <div class="mt-2 text-sm text-blue-700">
+                    <p>{{ insights.security_note or "Your financial data is processed securely. Only aggregated spending patterns are analyzed for insights." }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

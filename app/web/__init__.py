@@ -14,7 +14,7 @@ from app.models.transaction import Transaction
 from app.services.user_service import create_user, get_user_by_email
 from app.services.account_service import get_user_accounts, create_account
 from app.services.transaction_service import get_user_transactions, create_transaction
-# from app.services.ai.insights_service import insights_service
+from app.services.ai.insights_service import insights_service
 from app.schemas.user import UserCreate
 from app.schemas.account import AccountCreate
 from app.schemas.transaction import TransactionCreate
@@ -273,3 +273,172 @@ async def add_account_post(
                 "balance": balance,
             }
         )
+
+
+@router.get("/transactions", response_class=HTMLResponse)
+async def transactions_page(request: Request, db: Session = Depends(get_db)):
+    user = get_current_user_optional(request, db)
+    if not user:
+        return RedirectResponse(url="/login")
+    
+    transactions = get_user_transactions(db, user.id, limit=50)
+    accounts = get_user_accounts(db, user.id)
+    
+    return templates.TemplateResponse(
+        "transactions/list.html",
+        {
+            "request": request,
+            "user": user,
+            "transactions": transactions,
+            "accounts": accounts
+        }
+    )
+
+
+@router.get("/transactions/add", response_class=HTMLResponse)
+async def add_transaction_form(request: Request, db: Session = Depends(get_db)):
+    user = get_current_user_optional(request, db)
+    if not user:
+        return RedirectResponse(url="/login")
+    
+    accounts = get_user_accounts(db, user.id)
+    
+    return templates.TemplateResponse(
+        "transactions/form.html",
+        {
+            "request": request,
+            "user": user,
+            "accounts": accounts,
+            "transaction_type": "income"
+        }
+    )
+
+
+@router.get("/transactions/add-expense", response_class=HTMLResponse)
+async def add_expense_form(request: Request, db: Session = Depends(get_db)):
+    user = get_current_user_optional(request, db)
+    if not user:
+        return HTMLResponse("<p>Please login</p>", status_code=401)
+    
+    accounts = get_user_accounts(db, user.id)
+    
+    return templates.TemplateResponse(
+        "transactions/form.html",
+        {
+            "request": request,
+            "user": user,
+            "accounts": accounts,
+            "transaction_type": "expense"
+        }
+    )
+
+
+@router.post("/transactions/add")
+async def add_transaction_post(
+    request: Request,
+    account_id: int = Form(...),
+    amount: float = Form(...),
+    description: str = Form(...),
+    transaction_type: str = Form(...),
+    category: str = Form(""),
+    transaction_date: str = Form(...),
+    db: Session = Depends(get_db)
+):
+    user = get_current_user_optional(request, db)
+    if not user:
+        return RedirectResponse(url="/login")
+    
+    try:
+        parsed_date = datetime.fromisoformat(transaction_date.replace('T', ' '))
+        
+        transaction_data = TransactionCreate(
+            account_id=account_id,
+            amount=amount,
+            description=description,
+            transaction_type=transaction_type,
+            category=category or None,
+            transaction_date=parsed_date
+        )
+        
+        create_transaction(db, transaction_data, user.id)
+        
+        return HTMLResponse("""
+            <div class="bg-green-50 border border-green-200 rounded-md p-4">
+                <p class="text-green-800">Transaction added successfully!</p>
+            </div>
+            <script>
+                setTimeout(() => window.location.reload(), 1000);
+            </script>
+        """)
+        
+    except Exception as e:
+        accounts = get_user_accounts(db, user.id)
+        return templates.TemplateResponse(
+            "transactions/form.html",
+            {
+                "request": request,
+                "user": user,
+                "accounts": accounts,
+                "error": str(e),
+                "account_id": account_id,
+                "amount": amount,
+                "description": description,
+                "transaction_type": transaction_type,
+                "category": category
+            }
+        )
+
+
+@router.get("/insights", response_class=HTMLResponse)
+async def insights_page(request: Request, db: Session = Depends(get_db)):
+    """AI insights page."""
+    user = get_current_user_optional(request, db)
+    if not user:
+        return RedirectResponse(url="/login")
+    
+    insights = insights_service.generate_spending_insights(user.id, db)
+    
+    return templates.TemplateResponse(
+        "insights.html",
+        {
+            "request": request,
+            "user": user,
+            "insights": insights
+        }
+    )
+
+
+# # HTMX Partial Routes (for dynamic content)
+# @router.get("/transactions/recent", response_class=HTMLResponse)
+# async def recent_transactions_partial(request: Request, db: Session = Depends(get_db)):
+#     """Return recent transactions HTML partial for HTMX."""
+#     user = get_current_user_optional(request, db)
+#     print(user,'user-------')
+#     if not user:
+#         return HTMLResponse("<p>Please login</p>")
+    
+#     transactions = get_user_transactions(db, user.id, limit=5)
+#     print('we are here-----\n\n', transactions)
+#     html = ""
+#     for transaction in transactions:
+#         amount_color = "text-green-600" if transaction.amount > 0 else "text-red-600"
+#         amount_prefix = "+" if transaction.amount > 0 else ""
+        
+#         html += f"""
+#         <div class="flex justify-between items-center py-2 border-b">
+#             <div>
+#                 <p class="font-medium">{transaction.description}</p>
+#                 <p class="text-sm text-gray-500">{transaction.category or 'Uncategorized'}</p>
+#             </div>
+#             <div class="text-right">
+#                 <p class="{amount_color} font-medium">
+#                     {amount_prefix}₹{abs(float(transaction.amount)):.2f}
+#                 </p>
+#                 <p class="text-sm text-gray-500">
+#                     {transaction.transaction_date.strftime('%m/%d')}
+#                 </p>
+#             </div>
+#         </div>
+#         """
+    
+#     return HTMLResponse(html)
