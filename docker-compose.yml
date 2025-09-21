@@ -1,5 +1,4 @@
 services:
-  # PostgreSQL Database
   postgres:
     image: postgres:16-alpine
     container_name: finflow_db
@@ -16,7 +15,6 @@ services:
     networks:
       - fin_network
 
-  # FastAPI Application
   api:
     build: 
       context: .
@@ -33,7 +31,7 @@ services:
     depends_on:
       - postgres
     volumes:
-      - ./app:/app/app  # Hot reload in development
+      - ./app:/app/app
       - ./alembic:/app/alembic
     networks:
       - fin_network

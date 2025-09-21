@@ -1,0 +1,105 @@
+<div class="p-6">
+    <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-medium text-gray-900">
+            {% if action == 'add' %}Add New Account{% else %}Edit Account{% endif %}
+        </h3>
+        <button onclick="document.getElementById('modal').classList.add('hidden')" class="text-gray-400 hover:text-gray-600">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+        </button>
+    </div>
+
+    {% if error %}
+        <div class="mb-4 bg-red-50 border border-red-200 rounded-md p-4">
+            <p class="text-sm text-red-800">{{ error }}</p>
+        </div>
+    {% endif %}
+
+    <form hx-post="/accounts/add" hx-target="#modal-content" hx-swap="innerHTML">
+        <div class="space-y-4">
+            <div>
+                <label for="name" class="block text-sm font-medium text-gray-700">Account Name</label>
+                <input 
+                    type="text" 
+                    id="name" 
+                    name="name" 
+                    required
+                    value="{{ name or '' }}"
+                    placeholder="e.g., Main Checking, Emergency Savings"
+                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+            </div>
+
+            <div>
+                <label for="account_type" class="block text-sm font-medium text-gray-700">Account Type</label>
+                <select 
+                    id="account_type" 
+                    name="account_type" 
+                    required
+                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                    <option value="">Select account type</option>
+                    <option value="checking" {% if account_type == 'checking' %}selected{% endif %}>🏦 Checking Account</option>
+                    <option value="savings" {% if account_type == 'savings' %}selected{% endif %}>🐷 Savings Account</option>
+                    <option value="credit_card" {% if account_type == 'credit_card' %}selected{% endif %}>💳 Credit Card</option>
+                    <option value="investment" {% if account_type == 'investment' %}selected{% endif %}>📈 Investment Account</option>
+                    <option value="cash" {% if account_type == 'cash' %}selected{% endif %}>💵 Cash Account</option>
+                </select>
+            </div>
+
+            <div>
+                <label for="balance" class="block text-sm font-medium text-gray-700">Initial Balance</label>
+                <div class="mt-1 relative rounded-md shadow-sm">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <span class="text-gray-500 sm:text-sm">$</span>
+                    </div>
+                    <input 
+                        type="number" 
+                        id="balance" 
+                        name="balance" 
+                        step="0.01"
+                        value="{{ balance or '0.00' }}"
+                        placeholder="0.00"
+                        class="block w-full pl-7 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                </div>
+                <p class="mt-1 text-xs text-gray-500">Enter the current balance of this account</p>
+            </div>
+
+            <!-- <div>
+                <label for="institution" class="block text-sm font-medium text-gray-700">Bank/Institution <span class="text-gray-400">(optional)</span></label>
+                <input 
+                    type="text" 
+                    id="institution" 
+                    name="institution" 
+                    value="{{ institution or '' }}"
+                    placeholder="e.g., Chase Bank, Wells Fargo"
+                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+            </div> -->
+
+            <!-- 
+            <div>
+                <label for="account_number" class="block text-sm font-medium text-gray-700">Account Number <span class="text-gray-400">(optional)</span></label>
+                <input 
+                    type="text" 
+                    id="account_number" 
+                    name="account_number" 
+                    placeholder="e.g., ****1234 (last 4 digits)"
+                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                <p class="mt-1 text-xs text-gray-500">For reference only - we recommend using last 4 digits</p>
+            </div> -->
+        </div>
+
+        <div class="mt-6 flex justify-end space-x-3">
+            <button 
+                type="button" 
+                onclick="document.getElementById('modal').classList.add('hidden')"
+                class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                Cancel
+            </button>
+            <button 
+                type="submit"
+                class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                {% if action == 'add' %}Add Account{% else %}Update Account{% endif %}
+            </button>
+        </div>
+    </form>
+</div>
