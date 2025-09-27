@@ -74,6 +74,14 @@ def calculate_dashboard_stats(user_id: int, db: Session) -> dict:
     }
 
 
+@router.get("/")
+async def home(request: Request, db: Session = Depends(get_db)):
+    user = get_current_user_optional(request, db)
+    if user:
+        return RedirectResponse(url="/dashboard")
+    else:
+        return RedirectResponse(url="/login")
+
 @router.get("/login", response_class=HTMLResponse)
 async def login_page(request: Request):
     return templates.TemplateResponse("auth/login.html", {"request": request})
@@ -397,7 +405,6 @@ async def insights_page(request: Request, db: Session = Depends(get_db)):
         return RedirectResponse(url="/login")
     
     insights = insights_service.generate_spending_insights(user.id, db)
-    
     return templates.TemplateResponse(
         "insights.html",
         {
@@ -409,36 +416,36 @@ async def insights_page(request: Request, db: Session = Depends(get_db)):
 
 
 # # HTMX Partial Routes (for dynamic content)
-# @router.get("/transactions/recent", response_class=HTMLResponse)
-# async def recent_transactions_partial(request: Request, db: Session = Depends(get_db)):
-#     """Return recent transactions HTML partial for HTMX."""
-#     user = get_current_user_optional(request, db)
-#     print(user,'user-------')
-#     if not user:
-#         return HTMLResponse("<p>Please login</p>")
+@router.get("/transactions/recent", response_class=HTMLResponse)
+async def recent_transactions_partial(request: Request, db: Session = Depends(get_db)):
+    """Return recent transactions HTML partial for HTMX."""
+    user = get_current_user_optional(request, db)
+    print(user,'user-------')
+    if not user:
+        return HTMLResponse("<p>Please login</p>")
     
-#     transactions = get_user_transactions(db, user.id, limit=5)
-#     print('we are here-----\n\n', transactions)
-#     html = ""
-#     for transaction in transactions:
-#         amount_color = "text-green-600" if transaction.amount > 0 else "text-red-600"
-#         amount_prefix = "+" if transaction.amount > 0 else ""
+    transactions = get_user_transactions(db, user.id, limit=5)
+    print('we are here-----\n\n', transactions)
+    html = ""
+    for transaction in transactions:
+        amount_color = "text-green-600" if transaction.amount > 0 else "text-red-600"
+        amount_prefix = "+" if transaction.amount > 0 else ""
         
-#         html += f"""
-#         <div class="flex justify-between items-center py-2 border-b">
-#             <div>
-#                 <p class="font-medium">{transaction.description}</p>
-#                 <p class="text-sm text-gray-500">{transaction.category or 'Uncategorized'}</p>
-#             </div>
-#             <div class="text-right">
-#                 <p class="{amount_color} font-medium">
-#                     {amount_prefix}₹{abs(float(transaction.amount)):.2f}
-#                 </p>
-#                 <p class="text-sm text-gray-500">
-#                     {transaction.transaction_date.strftime('%m/%d')}
-#                 </p>
-#             </div>
-#         </div>
-#         """
+        html += f"""
+        <div class="flex justify-between items-center py-2 border-b">
+            <div>
+                <p class="font-medium">{transaction.description}</p>
+                <p class="text-sm text-gray-500">{transaction.category or 'Uncategorized'}</p>
+            </div>
+            <div class="text-right">
+                <p class="{amount_color} font-medium">
+                    {amount_prefix}₹{abs(float(transaction.amount)):.2f}
+                </p>
+                <p class="text-sm text-gray-500">
+                    {transaction.transaction_date.strftime('%m/%d')}
+                </p>
+            </div>
+        </div>
+        """
     
-#     return HTMLResponse(html)
+    return HTMLResponse(html)

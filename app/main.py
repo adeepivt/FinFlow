@@ -43,13 +43,13 @@ app.include_router(ai_router, prefix="/api/v1", tags=["ai-features"])
 app.include_router(web_router, tags=["web"])
 
 
-@app.get("/")
-async def root():
-    return {
-        "message": "Welcome to FinFlow API! 💰",
-        "version": "1.0.0",
-        "environment": settings.ENVIRONMENT
-    }
+# @app.get("/")
+# async def root():
+#     return {
+#         "message": "Welcome to FinFlow API! 💰",
+#         "version": "1.0.0",
+#         "environment": settings.ENVIRONMENT
+#     }
 
 
 @app.get("/health")

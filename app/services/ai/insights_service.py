@@ -20,7 +20,6 @@ class InsightsService:
             insights_data = self._analyze_spending_patterns(user_id, db)
             
             ai_insights = self._generate_ai_insights(insights_data) if self.enabled else []
-            
             return {
                 "summary": insights_data["summary"],
                 "trends": insights_data["trends"],
@@ -220,7 +219,7 @@ JSON Response:
                 return [insights_text]
             
         except Exception as e:
-            return [f"AI insights unavailable: {str(e)}"]
+            return Exception(f"AI insights API error: {error_str}")
     
     def _build_insights_context(self, data: Dict[str, Any]) -> str:
         context_parts = []
